@@ -1,0 +1,1074 @@
+{
+  "name": "WHATSAPP VENTAS",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.messages[0].text.body }}",
+                    "rightValue": "={{ $json.body.messages[0].text }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "2b435080-f3be-45bd-9ee2-461289d81771"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ce02913f-6854-4bc5-915f-b6073adb64ab",
+                    "leftValue": "={{ $json.body.messages[0].voice.id }}",
+                    "rightValue": "={{ $json.body.messages[0].voice }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        560,
+        80
+      ],
+      "id": "0b55d0fd-23b8-47b2-9ed9-d23c397dc4a3",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28b24f3b-4510-46f6-b1a6-89cdf9e64858",
+              "name": "Texto",
+              "value": "={{ $json.body.messages[0].text.body }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        912,
+        64
+      ],
+      "id": "e86f403f-f6c3-4f61-a04c-4559b154e030",
+      "name": "Captura Texto"
+    },
+    {
+      "parameters": {
+        "jsCode": "let extractedText = '';\n\nfor (const item of items) {\n  if (item.json.text && item.json.text.trim() !== '') {\n    extractedText = item.json.text.trim();\n    break;\n  }\n  if (item.json.Texto && item.json.Texto.trim() !== '') {\n    extractedText = item.json.Texto.trim();\n    break;\n  }\n}\n\nreturn [\n  { \n    json: {\n      text: extractedText,\n      chatId: $('WHATSAPP').first().json.body.messages[0].chat_id\n    } \n  }\n];\n\n\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        272
+      ],
+      "id": "7970816b-27c9-46a1-b2df-f063aecdb8c0",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "55520c3c-61ea-42a9-afe1-0d1a1df21a83",
+      "name": "Transcribe Audio",
+      "credentials": {
+        "openAiApi": {
+          "id": "sfXyX1wuw7tu2Twv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dac10c31-9f63-43c2-891c-98a363fcba1f",
+              "leftValue": "={{ $json.body.messages[0].from_me }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        112
+      ],
+      "id": "afcb4bac-3d13-428b-bc5e-8d2c6c31b1d5",
+      "name": "If",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        464,
+        288
+      ],
+      "id": "9f3eb8be-2d4a-4b97-bc0b-de350f4853ae",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('WHATSAPP').item.json.body.messages[0].voice.link }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        272
+      ],
+      "id": "4ae766b4-10ab-440f-8153-4c7f3da6b480",
+      "name": "Capturar Audio"
+    },
+    {
+      "parameters": {
+        "content": "RECEPCIÓN DE MENSAJE WHATSAPP\n",
+        "height": 416,
+        "width": 752,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "ffe8907c-4701-4fc9-a6a3-a7037e7ab53a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "PROCESAMIENTO DE MENSAJE\n\n",
+        "height": 416,
+        "width": 652,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "d8b7badc-169b-44de-aa11-496d66129508",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        48,
+        112
+      ],
+      "id": "1732bfae-1598-4475-aa4a-cf45aa3e5c9a",
+      "name": "WHATSAPP",
+      "webhookId": "be54a501-5cad-4d1f-b835-70ba8c6c0a9c"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        736
+      ],
+      "id": "c006ea98-7e7d-4423-9f25-da6082971f28",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "sfXyX1wuw7tu2Twv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Code').item.json.chatId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        736
+      ],
+      "id": "0f7d5ffe-4fa2-4e5d-94fb-4527285d7b84",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M",
+          "mode": "list",
+          "cachedResultName": "PRODUCTOS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1426233384,
+          "mode": "list",
+          "cachedResultName": "PRODUCTOS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M/edit#gid=1426233384"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        736
+      ],
+      "id": "34c5b7c1-96a2-4236-8a6b-1d78becf679b",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1birqEGX9LOC10ig",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer message: {{ $json.text  }} \nchat_id: {{ $json.chatId }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a Product Context Resolver.\n\nYour task is to fill the structured output fields provided by the system.\n\nHard rules (must be followed strictly):\n\n- Copy chat_id exactly from the input\n- Copy the original user message exactly as last_user_message\n\n- ONLY query the Google Spreadsheet tool IF the user message contains\n  explicit product-related tokens such as:\n  product names, SKUs, plan names, model numbers, or clear references\n\n- Messages that are greetings, pauses, filler text, punctuation, emojis,\n  or generic words (e.g. \"...\", \"hola\", \"info\", \"buenas\") MUST NOT trigger\n  a spreadsheet search\n\n- If no explicit product reference exists:\n  - product_id MUST be an empty string\n  - confidence MUST be <= 0.2\n  - context_status MUST be \"UNCLEAR\"\n\n- Use ONLY products returned by tools\n- Do NOT infer intent\n- Do NOT guess\n- Do NOT create false customer intent\n\n- confidence must be a number between 0 and 1\n- context_status must be:\n  - \"CLEAR\" if confidence >= 0.6 and product_id is not empty\n  - \"UNCLEAR\" otherwise\n\n- Do NOT add extra fields\n- Do NOT explain anything\n\nReturn ONLY valid JSON in the required schema.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        32,
+        528
+      ],
+      "id": "49f884cf-db1c-488a-a279-3b5c9403cdd1",
+      "name": "CONTEXT BUILDER"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        736
+      ],
+      "id": "df067baf-605b-403b-aad6-f778492072f1",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "sfXyX1wuw7tu2Twv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('CONTEXT BUILDER').item.json.output.chat_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        736
+      ],
+      "id": "fda6066d-e8bc-47d2-b324-04608a86f133",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"chat_id\": \"13135555657@s.whatsapp.net\",\n  \"last_user_message\": \"hola vi el anuncio\",\n  \"product_id\": \"MNT_RH_21\",\n  \"confidence\": 0.85,\n  \"context_status\": \"CLEAR\",\n  \"reason\": \"Mentions WhatsApp automation bot\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        736
+      ],
+      "id": "5c2285eb-6a86-4a28-ac53-c5abb81a94a3",
+      "name": "Structured Output Parser",
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an Intent Analyzer.\n\nYou receive the structured output of a Context Builder.\nYour task is to classify the user's intent based ONLY on the explicit content\nof last_user_message AND respecting the provided context_status.\n\nRules:\n\n- Copy chat_id exactly from the input\n- Copy last_user_message exactly from the input\n\n- You MUST respect context_status:\n  - If context_status is \"UNCLEAR\", you MUST NOT classify any\n    product-related or purchase-related intent.\n\n- Do NOT infer intent from:\n  silence, punctuation, greetings alone, filler text, or ambiguity\n\n- Do NOT assume commercial interest\n- Do NOT guess or predict future actions\n\nAllowed intents (MUST be one of these):\n- GREETING\n- INFO_REQUEST\n- PRICING\n- PURCHASE\n- SUPPORT\n- OTHER\n- UNCLEAR\n\nContext enforcement rules:\n\n- If context_status = \"UNCLEAR\":\n  - Allowed intents: GREETING, UNCLEAR, OTHER\n  - confidence MUST be < 0.6\n\n- PURCHASE:\n  Only if the message contains an explicit buying action\n  (e.g. buy, purchase, order, subscribe)\n\n- PRICING:\n  Only if the message explicitly mentions price, cost, or value\n\n- INFO_REQUEST:\n  Only if the message explicitly asks for information\n\n- GREETING:\n  Only greetings, no request\n\n- UNCLEAR:\n  No actionable or explicit intent\n\nConfidence rules:\n- confidence must be a number between 0 and 1\n- confidence >= 0.6 ONLY if intent is explicit and unambiguous\n- If confidence < 0.6, intent MUST be \"UNCLEAR\"\n\nDo NOT add extra fields.\nDo NOT explain outside the JSON.\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        528
+      ],
+      "id": "de4e68b5-1e97-4d9e-a81a-cb563274679c",
+      "name": "INTENTIONS ANALYZER"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"chat_id\": \"13135555657@s.whatsapp.net\",\n  \"last_user_message\": \"hola\",\n  \"intent\": \"GREETING\",\n  \"confidence\": 0.8,\n  \"reason\": \"Greeting without any request\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        736
+      ],
+      "id": "55e758df-0f81-4e91-a88f-0d02a358a1ca",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('INTENTIONS ANALYZER').item.json.output.chat_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        1200
+      ],
+      "id": "24d353ab-41c5-4e9f-9ba9-7998a3800282",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"chat_id\": \"<chat_id>\",\n  \"message\": \"<next WhatsApp message>\",\n  \"qualification_goal\": \"<short internal goal description>\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1424,
+        1200
+      ],
+      "id": "c320ba6a-5776-4a09-9b69-8881dd8419c6",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        1200
+      ],
+      "id": "22f075ea-7914-4538-b9ba-e92e4cab42a4",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "sfXyX1wuw7tu2Twv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.last_user_message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a WhatsApp Sales Qualifier.\n\nYou generate the NEXT message to send to the customer.\nYou NEVER close sales, but you MUST actively move the customer toward a buying decision.\n\nYou receive:\n\nThe last user message\n\nFull conversation context\n\nContext Builder output (including context_status and product_id)\n\nIntent Analyzer output (intent and confidence)\n\nYou do NOT invent information.\nYou do NOT invent links.\nYou do NOT invent media.\nYou NEVER send images or media of any kind.\n\nPRIMARY OBJECTIVE (CRITICAL)\n\nYour goal is NOT to educate.\nYour goal is to:\n\nResolve the main doubt\n\nConfirm fit or interest\n\nPush the conversation toward purchase readiness\n\nCORE RESPONSIBILITIES\n\nAnswer clearly and briefly\n\nRemove blockers\n\nValidate interest\n\nAsk ONLY questions that move toward a decision\n\nQUESTION RULES (VERY IMPORTANT)\n\nAsk AT MOST ONE question per message\n\nQuestions MUST be decision-oriented\n\nNEVER ask exploratory or open-ended questions\n\nGOOD QUESTIONS:\n\nIs this what you’re looking for?\n\nWould this work for you?\n\nDoes this fit what you had in mind?\n\nAre you considering moving forward?\n\nBAD QUESTIONS (FORBIDDEN):\n\nTell me more about…\n\nWhat are you trying to achieve?\n\nCan you explain…\n\nBroad discovery questions\n\nSTRICT LOGIC RULES\n\nIf the user asks HOW, WHAT, BENEFITS, USE, or DESCRIPTION:\n\nAnswer directly\n\nKeep it concise (max 2 sentences)\n\nEnd with ONE decision-oriented question\n\nIf intent = INFO_REQUEST:\n\nMax 2 sentences\n\nEnd with ONE readiness or fit confirmation question\n\nIf intent = PRICE_REQUEST:\n\nSay the price ONCE\n\nAsk ONE readiness-confirming question\n\nDo NOT mention buying steps\n\nIf context_status = UNCLEAR:\n\nAsk ONE clarifying question ONLY\n\nDo NOT explain products\n\nDo NOT mention prices\n\nIf intent indicates PURCHASE or BUYING_SIGNAL:\n\nDO NOT ask more questions\n\nThe system will route the conversation automatically\n\nSTYLE RULES\n\nSound human\n\nCalm and confident\n\nNo emojis\n\nNo quotes\n\nNo line breaks"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1008,
+        992
+      ],
+      "id": "53e8735d-2361-4b73-a9b3-cb3fe84d2d38",
+      "name": "CUALIFIER"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/text",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"Authorization\": \"ykktxFQfUig81v2p4E3AP63WstZUs55g\",  \n  \"Content-Type\": \"application/json\",\n  \"Accept\": \"application/json\"\n}\n",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('WHATSAPP').item.json.body.messages[0].chat_id }}\",\n  \"body\": \"{{ $json.output.message }}\",\n  \"typing_time\": 2.5\n}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        992
+      ],
+      "id": "e9e89df9-226f-492e-bd26-ab36575b6e91",
+      "name": "Send Message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/image",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Authorization\": \"Bearer ykktxFQfUig81v2p4E3AP63WstZUs55g\",\n  \"Content-Type\": \"application/json\",\n  \"Accept\": \"application/json\"\n}\n",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('WHATSAPP').item.json.body.messages[0].chat_id }}\",\n \"media\": \"{{ $('CUALIFIER').item.json.output.image }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        1008
+      ],
+      "id": "fb06e1ed-7189-42e4-a25d-d6d41f8ff104",
+      "name": "Send Image",
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        784
+      ],
+      "id": "3df018c8-71c9-4e3a-8530-a3a19ab4bcac",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "sfXyX1wuw7tu2Twv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M",
+          "mode": "list",
+          "cachedResultName": "PRODUCTOS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1426233384,
+          "mode": "list",
+          "cachedResultName": "PRODUCTOS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M/edit#gid=1426233384"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        784
+      ],
+      "id": "e46b32ad-9730-4fae-82dd-e5987e27c4ec",
+      "name": "Get row(s) in sheet in Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1birqEGX9LOC10ig",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M",
+          "mode": "list",
+          "cachedResultName": "PRODUCTOS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1426233384,
+          "mode": "list",
+          "cachedResultName": "PRODUCTOS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_XQm8gQxv9KIz-MwpLkxlGzc2KTw63WOoJaskT4Gj3M/edit#gid=1426233384"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1264,
+        1200
+      ],
+      "id": "e4cef81b-81d8-4f21-a099-d9734b9de3be",
+      "name": "Get row(s) in sheet in Google Sheets2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1birqEGX9LOC10ig",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"chat_id\": \"<chat_id>\",\n  \"message\": \"<next WhatsApp message>\",\n  \"qualification_goal\": \"<short internal goal description>\",\n  \"image\" : \"string\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1600,
+        784
+      ],
+      "id": "d79e24ed-9235-4baf-b29a-6e57295decdc",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "afc8afc4-5b72-4ee3-8641-9681d327434b",
+              "leftValue": "= {{ $json.output.intent }}",
+              "rightValue": "PURCHASE",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        528
+      ],
+      "id": "b0dfe7ec-2a0b-403a-a98f-01d016525b75",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('If1').item.json.output.chat_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1280,
+        784
+      ],
+      "id": "e0189c75-ec21-49a4-9927-a2e8e21e1a05",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gate.whapi.cloud/messages/text",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"Authorization\": \"ykktxFQfUig81v2p4E3AP63WstZUs55g\",  \n  \"Content-Type\": \"application/json\",\n  \"Accept\": \"application/json\"\n}\n",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\": \"{{ $('WHATSAPP').item.json.body.messages[0].chat_id }}\",\n  \"body\": \"{{ $json.output.message }}\",\n  \"typing_time\": 2.5\n}\n\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        512
+      ],
+      "id": "de0e12ff-175e-4606-8e14-f83d098eea0f",
+      "name": "Send Message1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output.last_user_message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a WhatsApp Sales Closer.\n\nYou are invoked ONLY when intent = PURCHASE.\nThe Qualifier is no longer involved.\n\nIMPORTANT FLOW RULE\n\n- You do NOT send messages directly to the customer\n- You MUST return the message to the Qualifier workflow\n- The workflow will send your message to WhatsApp\n\nThe purchase is completed ONLY via the official checkout link stored in the Google Spreadsheet.\n\nYou MUST retrieve the checkout link using the Sheets tool.\n- Match the row where PRODUCTO = product_id\n- Use the link EXACTLY as returned\n- If no link is found, do NOT invent one\n\nYOUR JOB\n\n- Confirm buying intent\n- Generate the exact message to send\n- Include the checkout link ONLY if returned by the tool\n- Encourage completion\n\nCRITICAL HARD RULES\n\n1. NEVER generate or modify URLs\n2. ONLY include a link if returned by the tool\n3. If no link exists:\n   - Ask ONE short question saying you will confirm availability\n   - Include NO URL\n4. Do NOT explain the product\n5. Do NOT mention benefits, usage, or price\n6. Do NOT ask for personal data or payment info\n7. NEVER mention tools, agents, systems, intents, or spreadsheets\n\nINTERACTION RULES\n\n- Max 2 sentences\n- Ask ONLY ONE question\n\nSTYLE RULES\n\n- Calm, confident, human\n- No emojis\n- No quotes\n- No line breaks\n\nOUTPUT RULES (MANDATORY)\n\nReturn ONLY this JSON:\n\n{\n  \"chat_id\": \"<chat_id>\",\n  \"message\": \"<exact message to send>\",\n  \"qualification_goal\": \"Close purchase\",\n  \"image\": \"\"\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1184,
+        512
+      ],
+      "id": "95de2da7-e1e3-4213-83b6-6af9b5664478",
+      "name": "CLOSER"
+    },
+    {
+      "parameters": {
+        "content": "LOGICA\n",
+        "height": 416,
+        "width": 652,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        0
+      ],
+      "id": "49a42365-3d0c-489a-a1df-ec29f834960a",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Captura Texto",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Capturar Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Captura Texto": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "CONTEXT BUILDER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Audio": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capturar Audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WHATSAPP": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CONTEXT BUILDER",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "CONTEXT BUILDER",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "CONTEXT BUILDER",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONTEXT BUILDER": {
+      "main": [
+        [
+          {
+            "node": "INTENTIONS ANALYZER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "INTENTIONS ANALYZER",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "INTENTIONS ANALYZER",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "CONTEXT BUILDER",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "INTENTIONS ANALYZER",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "CUALIFIER",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "CUALIFIER",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CUALIFIER",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INTENTIONS ANALYZER": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CUALIFIER": {
+      "main": [
+        [
+          {
+            "node": "Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Message": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CLOSER",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets1": {
+      "ai_tool": [
+        [
+          {
+            "node": "CLOSER",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets2": {
+      "ai_tool": [
+        [
+          {
+            "node": "CUALIFIER",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "CLOSER",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "CLOSER",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CUALIFIER",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "CLOSER",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CLOSER": {
+      "main": [
+        [
+          {
+            "node": "Send Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c9d9fbb2-dce6-4412-a0d4-3cee6ecf1762",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d3e4980fcdf6947a4c8d87b019cffb1d77b1ff66326d96260cf7c285683ff38a"
+  },
+  "id": "6K6e5uH49CAvEl1J2HPJx",
+  "tags": []
+}
